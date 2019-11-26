@@ -11,12 +11,13 @@
 |
 */
 
+use App\Http\Controllers\API\GetJsonPage;
 use Inertia\Inertia;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
 });
 
-Route::get('/portfolio', function () {
+Route::get('/api', 'API\GetJsonPage@makeJSONFromSite', ['manon-thivant.xyz', $params]);
+Route::get('/api2', 'API\GetJsonPage@advancedMakeJSONFromSite');
 
-});
