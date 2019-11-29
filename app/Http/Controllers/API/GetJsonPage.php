@@ -4,13 +4,17 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp\Exception\GuzzleException;
 use PHPHtmlParser\Dom;
+use stringEncode\Exception;
+use function HighlightUtilities\splitCodeIntoArray;
 
 class GetJsonPage extends Controller
 {
-    function makeJSONFromSite($data) {
-        [$url, $params] = $data;
-        $json = [];
+    function makeJSONFromSite() {
+        $url = 'manon-thivant.xyz';
+        $arrays = [];
         $client = new Client();
 
         $response = $client->request(
@@ -21,8 +25,10 @@ class GetJsonPage extends Controller
         $html = $response->getBody()->getContents();
 
         if ($response->getStatusCode() === 200) {
-            $dom = new Dom;$dom->load($html);
+            $dom = new Dom;
+            $dom->load($html);
             $sections = $dom->find('section');
+            $count = 0;
             foreach ($sections as $section) {
                 // title
                 $title = $section->find('h2');
@@ -32,18 +38,37 @@ class GetJsonPage extends Controller
                     'name' => $title->innerHTML,
                     'content' => $content->innerHTML
                 ];
-                $json[] = $element;
+                $arrays[] = $element;
             }
         }
-
-        dd(json_encode($json));
+        $json = json_encode($arrays, JSON_PRETTY_PRINT);
+        dd($json);
 
         return json_encode($json);
     }
+    // $content = [
+    //  cle: contenu,
+    //  cle: contenu
+    //  ...
+    //]
+    function advancedMakeJSONFromSite(string $url, $content) {
 
-    function advancedMakeJSONFromSite($data) {
-        [$url, $params] = $data;
-        $json = [];
+
+        // change &id; in url cause # don't work
+        $properContent = str_replace('&id;', '#', $content);
+
+        // separate the differents key:value
+        $arrayContents = explode('|', $properContent);
+
+        // separate keys and values and save in array separate from the other keys and values
+        $arraysOfKeysValues = [];
+        foreach ($arrayContents as $concatContent) {
+            $arraysOfKeysValues[] = explode(':', $concatContent);
+//            $arrays = [$arraysOfKeysValues[0] => []];
+        }
+        // --- MakeJsonFromSite
+        $arrays = [];
+
         $client = new Client();
 
         $response = $client->request(
@@ -54,22 +79,27 @@ class GetJsonPage extends Controller
         $html = $response->getBody()->getContents();
 
         if ($response->getStatusCode() === 200) {
-            $dom = new Dom;$dom->load($html);
-            $sections = $dom->find('section');
-            foreach ($sections as $section) {
-                // title
-                $title = $section->find('h2');
-                // content
-                $content = $section->find('article');
-                $element = [
-                    'name' => $title->innerHTML,
-                    'content' => $content->innerHTML
-                ];
-                $json[] = $element;
-            }
-        }
+            $dom = new Dom;
+            $dom->load($html);
 
-        dd(json_encode($json));
+            $count = 0;
+            $tempArray = [];
+            $secondTempArray = [];
+            foreach ($arraysOfKeysValues as $arrayOfKeysValues) {;
+                $secondTempArray[] = $arraysOfKeysValues[$count][0];
+                $elements = $dom->find($arrayOfKeysValues[1]);
+                $tempArraySecond = [];
+                foreach ($elements as $element) {
+                    $tempArraySecond[] =  $element->innerHTML;
+                }
+                $tempArray[] = $tempArraySecond;
+                $count++;
+            }
+
+            $arrays = array_combine($secondTempArray, $tempArray);
+        }
+        $json = json_encode($arrays);
+        dd($json);
 
         return json_encode($json);
     }

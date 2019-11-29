@@ -12,12 +12,13 @@
 */
 
 use App\Http\Controllers\API\GetJsonPage;
+use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
 });
 
-Route::get('/api', 'API\GetJsonPage@makeJSONFromSite', ['manon-thivant.xyz', $params]);
-Route::get('/api2', 'API\GetJsonPage@advancedMakeJSONFromSite');
+Route::get('/api', 'API\GetJsonPage@makeJSONFromSite');
+Route::get('/api2/{url}/{content}', 'API\GetJsonPage@advancedMakeJSONFromSite');
 
