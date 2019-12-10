@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\GuzzleException;
+use http\Env\Request;
 use PHPHtmlParser\Dom;
 use stringEncode\Exception;
 use function HighlightUtilities\splitCodeIntoArray;
@@ -51,10 +52,12 @@ class GetJsonPage extends Controller
     //  cle: contenu
     //  ...
     //]
-    function advancedMakeJSONFromSite(string $url, $content) {
+    function advancedMakeJSONFromSite(\Illuminate\Http\Request $request) {
 
+        $form = $request->get('form');
 
-        // change &id; in url cause # don't work
+        return $form;
+        // change &id; in url cause # don't wor
         $properContent = str_replace('&id;', '#', $content);
 
         // separate the differents key:value
@@ -64,8 +67,9 @@ class GetJsonPage extends Controller
         $arraysOfKeysValues = [];
         foreach ($arrayContents as $concatContent) {
             $arraysOfKeysValues[] = explode(':', $concatContent);
-//            $arrays = [$arraysOfKeysValues[0] => []];
+            // $arrays = [$arraysOfKeysValues[0] => []];
         }
+
         // --- MakeJsonFromSite
         $arrays = [];
 
@@ -83,22 +87,22 @@ class GetJsonPage extends Controller
             $dom->load($html);
 
             $count = 0;
-            $tempArray = [];
-            $secondTempArray = [];
+            $valuesArray = [];
+            $keysArray = [];
             foreach ($arraysOfKeysValues as $arrayOfKeysValues) {;
-                $secondTempArray[] = $arraysOfKeysValues[$count][0];
+                $keysArray[] = $arrayOfKeysValues[0];
                 $elements = $dom->find($arrayOfKeysValues[1]);
-                $tempArraySecond = [];
+                $valuesArrayTemp = [];
                 foreach ($elements as $element) {
-                    $tempArraySecond[] =  $element->innerHTML;
+                    $valuesArrayTemp[] =  $element->innerHTML;
                 }
-                $tempArray[] = $tempArraySecond;
+                $valuesArray[] = $valuesArrayTemp;
                 $count++;
             }
 
-            $arrays = array_combine($secondTempArray, $tempArray);
+            $arrays = array_combine($keysArray, $valuesArray);
         }
-        $json = json_encode($arrays);
+        $json = json_encode($arrays, JSON_PRETTY_PRINT);
         dd($json);
 
         return json_encode($json);

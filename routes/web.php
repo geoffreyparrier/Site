@@ -19,6 +19,5 @@ Route::get('/', function () {
     return Inertia::render('Welcome');
 });
 
-Route::get('/api', 'API\GetJsonPage@makeJSONFromSite');
-Route::get('/api2/{url}/{content}', 'API\GetJsonPage@advancedMakeJSONFromSite');
+Route::get('/api', 'API\GetJsonPage@advancedMakeJSONFromSite');
 
