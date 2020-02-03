@@ -1,19 +1,17 @@
 <template>
     <div>
         <NavBar/>
-        <createApi/>
+        <p>Bienvenue sur mon site, il est en construction</p>
     </div>
 </template>
 
 <script>
 
     import NavBar from "../Shared/NavBar";
-    import CreateApi from "./CreateApi";
 
     export default {
         components: {
             NavBar,
-            CreateApi,
         },
         props: {
         },

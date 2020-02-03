@@ -4,12 +4,10 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\BadResponseException;
-use GuzzleHttp\Exception\GuzzleException;
-use http\Env\Request;
+use Illuminate\Http\Request;
 use PHPHtmlParser\Dom;
-use stringEncode\Exception;
-use function HighlightUtilities\splitCodeIntoArray;
+use PHPHtmlParser\Exceptions\ChildNotFoundException;
+use PHPHtmlParser\Exceptions\NotLoadedException;use stringEncode\Exception;
 
 class GetJsonPage extends Controller
 {
@@ -29,7 +27,6 @@ class GetJsonPage extends Controller
             $dom = new Dom;
             $dom->load($html);
             $sections = $dom->find('section');
-            $count = 0;
             foreach ($sections as $section) {
                 // title
                 $title = $section->find('h2');
@@ -52,13 +49,10 @@ class GetJsonPage extends Controller
     //  cle: contenu
     //  ...
     //]
-    function advancedMakeJSONFromSite(\Illuminate\Http\Request $request) {
-
-        $form = $request->get('form');
-
-        return $form;
+    function advancedMakeJSONFromSite(Request $request) {
+        $url = 'manon-thivant.xyz';
         // change &id; in url cause # don't wor
-        $properContent = str_replace('&id;', '#', $content);
+        $properContent = str_replace('&id;', '#', $request);
 
         // separate the differents key:value
         $arrayContents = explode('|', $properContent);
@@ -91,7 +85,13 @@ class GetJsonPage extends Controller
             $keysArray = [];
             foreach ($arraysOfKeysValues as $arrayOfKeysValues) {;
                 $keysArray[] = $arrayOfKeysValues[0];
-                $elements = $dom->find($arrayOfKeysValues[1]);
+                try {
+                    $elements = $dom->find($arrayOfKeysValues[1]);
+                } catch (ChildNotFoundException $e) {
+                    throw new Exception($e);
+                } catch (NotLoadedException $e) {
+                    throw new Exception($e);
+                }
                 $valuesArrayTemp = [];
                 foreach ($elements as $element) {
                     $valuesArrayTemp[] =  $element->innerHTML;
